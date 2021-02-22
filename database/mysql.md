@@ -22,4 +22,4 @@
 >* mysql自增列的增加方式 show variables like "auto_increment_offset" auto_increment_offset + N × auto_increment_increment N表示第几次，从1开始计算
 
 # mysql没有长连接 
-> 注意在使用数据库的时候，一定要注意没有长连接，只有短链接，连接到一定的时间就会超时，断掉
+> 注意在使用数据库的时候，一定要注意没有长连接，只有短链接，连接到一定的时间就会超时，断掉。所以在使用的时候要注意，在写入数据库之前要关注一下与数据库的连接是否断掉。如果断掉，注意重连。
