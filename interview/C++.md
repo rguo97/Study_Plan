@@ -161,3 +161,220 @@ void main()
  int* const p3 = &a; //p3是顶层const，p3本身不能改变，始终指向a，但是通过p3可以改变a的值
  const int* const p4 = &a; //顶层const和底层const的结合。p4本身是const，且通过p4无法改变它指向的数据a
 ```
+
+# final和override关键字
+> final限定某个类不能被继承，或者限定某个虚函数不能被重写，同时该关键字要写到类或者虚函数的后面。
+
+```
+struct A
+{
+    virtual void fun() final; //该虚函数不能被重写
+    virtual bar() final; //err: 非虚函数不能被final修饰
+};
+
+struct B final : A
+{
+    void fun(); //err: 该虚函数不能被重写，因为在A中已经被声明为final
+};
+
+struct C : B //err: B是final
+{
+};
+```
+
+> override关键字保证了派生类中声明重写的函数与基类虚函数有相同的签名，可避免一些拼写错误，如加了此关键字但基类中并不存在相同的函数就会报错，也可以防止把本来想重写的虚函数声明成了重载。同时在阅读代码时如果看到函数声明后加了此关键字就能立马知道此函数是重写了基类虚函数。保证重写虚函数的正确性的同时也提高了代码可读性。
+
+# 拷贝初始化和直接初始化，初始化和赋值的区别
+
+>* 对象不存在，且没用别的对象来初始化，调用构造函数
+>* 对象不存在，且用别的对象来初始化，调用拷贝构造
+>* 对象存在，用别的对象给他赋值，就是赋值函数
+https://www.cnblogs.com/cposture/p/4925736.html
+https://blog.csdn.net/ljianhui/article/details/9245661
+https://blog.csdn.net/splendid7/article/details/81537706
+https://www.cnblogs.com/qingergege/p/7607089.html（移动构造函数）
+
+>（1）什么是拷贝初始化（也称为复制初始化）：将一个已有的对象拷贝到正在创建的对象，如果需要的话还需要进行类型转换。拷贝初始化发生在下列情况：
+1.使用赋值运算符定义变量
+2.将对象作为实参传递给一个非引用类型的形参
+3.将一个返回类型为非引用类型的函数返回一个对象
+4.用花括号列表初始化一个数组中的元素或一个聚合类中的成员
+
+>（2）什么是直接初始化：在对象初始化时，通过括号给对象提供一定的参数，并且要求编译器使用普通的函数匹配来选择与我们提供的参数最匹配的构造函数
+
+```
+ClassTest ct2 = "ab";//复制初始化
+ClassTest ct2("ab");//直接初始化
+```
+
+>* 直接初始化和拷贝初始化效率基本一样，因为在底层的实现基本一样，所以将拷贝初始化改为直接初始化效率提高不大
+
+>* 拷贝初始化什么时候使用拷贝构造函数：？？？
+
+> 赋值表达式右边是一个对象
+直接初始化时，括号内的参数是一个对象
+用花括号列表初始化一个数组中的元素或一个聚合类中的成员
+将一个返回类型为引用类型的函数返回一个对象
+形参为非引用类型的函数，其中是将实参拷贝到临时对象
+
+>* 什么时候使用到拷贝赋值运算符：？？？
+
+> 赋值表达式右边是一个左值对象（如果需要，可以调用构造函数类型转换，生成一个临时对象）
+当赋值表达式右边是一个右值对象，且没有定义移动赋值运算符函数
+什么时候使用移动赋值运算符：？？？
+当赋值表达式右边是一个右值对象，且定义了移动赋值运算符函数
+
+# extern "C"的用法
+> 为了能够正确的在C++ 代码中调用C语言的代码；在程序中加上extern "C"后，相当于告诉编译器这部分代码是C语言写的，因此要按照C语言进行编译，而不是C++；
+
+# 模板函数和模板类的特例化
+> 函数模板实例化有两个方面，一个是隐式实例化，一个是显式实例化。
+
+>* 下面为显式实例化:
+
+```
+#include<iostream>
+#include<vector>
+using namespace std;
+template <typename T>      //模板函数
+void output(T a)
+{
+	cout << a << endl;
+}
+
+template <typename A>
+class B                    //模板类
+{
+public:
+	void swp(A a);
+};
+template<typename A>
+void B<A>::swp(A a)
+{
+	cout << a << endl;
+}
+int main()
+{
+	cout << "下面是函数模板实例化" << endl;
+	output<int>(1);           //函数模板实例化
+	output<float>(1.2);
+	output<char>('a');
+
+	cout << "下面是类模板实例化" << endl;
+	B<int> b1;
+	b1.swp(1);
+	B<float> b2;
+	b2.swp(1.2);
+	B<char> b3;
+	b3.swp('a');
+	system("pause");
+}
+```
+
+> 注意：类模板的成员函数都是函数模板
+
+# C++的STL源码
+
+> 侯捷老师的STL源码剖析书籍与视频，其中包括内存池机制，各种容器的底层实现机制，算法的实现原理等）
+
+
+# STL源码中的hashtable的实现
+
+> `hash_table`是STL中`hash_map` 和 `hash_set` 的内部数据结构，`hash_table`的插入/删除/查找的时间复杂度都为O(1),是查找速度最快的一种数据结构，但是`hash_table`中的数据是无序的，一般也只有在数据不需要排序，只需要满足快速查找/插入/删除的时候使用`hash_table`。`hash_table`的扩展是将原`hash_table`中的数据摘下来插入到一个临时的`hash_table`中，因为每个桶都使用list来实现的，因此插入删除都不存在内存copy，所以也是很高效的，最后再将临时`hash_table`和原来的`hash_table`（此时已经为空）交换。
+
+# STL中unordered_map和map的区别和应用场景
+>* 头文件
+
+```
+map: #include < map >
+unordered_map: #include < unordered_map >
+```
+> 内部实现机理
+>* map： map内部实现了一个红黑树，该结构具有自动排序的功能，因此map内部的所有元素都是有序的，红黑树的每一个节点都代表着map的一个元素，因此，对于map进行的查找，删除，添加等一系列的操作都相当于是对红黑树进行这样的操作，故红黑树的效率决定了map的效率。
+>* unordered_map: unordered_map内部实现了一个哈希表，因此其元素的排列顺序是杂乱的，无序的
+
+> 优缺点以及适用处
+>* map优点：
+有序性，这是map结构最大的优点，其元素的有序性在很多应用中都会简化很多的操作
+红黑树，内部实现一个红黑数使得map的很多操作在lgnlgn的时间复杂度下就可以实现，因此效率非常的高
+>* map缺点：
+空间占用率高，因为map内部实现了红黑树，虽然提高了运行效率，但是因为每一个节点都需要额外保存父节点，孩子节点以及红/黑性质，使得每一个节点都占用大量的空间
+适用处，对于那些有顺序要求的问题，用map会更高效一些
+
+>* unordered_map优点：
+因为内部实现了哈希表，因此其查找速度非常的快
+>* unordered_map缺点：
+哈希表的建立比较耗费时间
+适用处，对于查找问题，unordered_map会更加高效一些，因此遇到查找问题，常会考虑一下用unordered_map
+
+
+# STL中vector的实现
+> 新增元素：Vector通过一个连续的数组存放元素，如果集合已满，在新增数据的时候，就要分配一块更大的内存，将原来的数据复制过来，释放之前的内存，在插入新增的元素。插入新的数据分在最后插入push_back和通过迭代器在任何位置插入，这里说一下通过迭代器插入，通过迭代器与第一个元素的距离知道要插入的位置，即int index=iter-begin()。这个元素后面的所有元素都向后移动一个位置，在空出来的位置上存入新增的元素。
+
+``` 
+#include <cstddef>
+#include <stdexcept>
+#include <memory>
+#include <iterator>
+
+template <typename T>
+class vector
+{
+  public:
+    using value_type = T;
+    using iterator = value_type *;
+    using size_type = std::size_t;
+
+  public:
+    vector() = default;
+    ~vector();
+    iterator begin() const;
+    iterator end() const;
+    size_type size() const;
+    value_type &operator[](size_type i) const;
+    value_type &at(size_type i) const;
+    void push_back(const value_type &new_elem);
+    void pop_back();
+
+  private:
+    iterator startptr = nullptr;
+    iterator endptr = nullptr;
+    iterator capptr = nullptr;
+    std::allocator<value_type> alloc;
+
+  private:
+    void check_cap();
+    void free();
+}
+```
+
+> 删除元素：删除和新增差不多，也分两种，删除最后一个元素pop_back和通过迭代器删除任意一个元素erase(iter)。通过迭代器删除还是先找到要删除元素的位置，即int index=iter-begin();这个位置后面的每个元素都想前移动一个元素的位置。同时我们知道erase不释放内存只初始化成默认值。
+删除全部元素clear：只是循环调用了erase，所以删除全部元素的时候，不释放内存。内存是在析构函数中释放的。
+
+# STL容器的几种迭代器以及对应的容器（输入迭代器，输出迭代器，前向迭代器，双向迭代器，随机访问迭代器）
+>* 顺序容器：vector,deque是随机访问迭代器；list是双向迭代器
+>* 容器适配器：stack,queue,priority_queue没有迭代器
+>* 关联容器：set,map,multiset,multimap是双向迭代器
+unordered_set,unordered_map,unordered_multiset,unordered_multimap是前向迭代器
+
+# STL中的traits技法
+>* type_traits  负责萃取型别的特性
+
+>* iterator_traits 负责萃取迭代器的特性
+
+>* char traits
+
+>* allocator_traits
+
+>* pointer_traits
+
+>* array_traits
+
+
+# vector使用的注意点及其原因，频繁对vector调用push_back()对性能的影响和原因。
+> 在一个vector的尾部之外的任何位置添加元素，都需要重新移动元素。
+而且，向一个vector添加元素可能引起整个对象存储空间的重新分配。重新分配一个对象的存储空间需要分配新的内存，并将元素从旧的空间移到新的空间（因为vector在内存中的地址是连续的，所以加入一个可能造成地址不够）
+
+> 解决方案
+
+> 预先通过reverse()分配内存
