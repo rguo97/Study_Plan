@@ -432,5 +432,24 @@ func main() {
 # 调试方法
 > 1. linux环境中，可以用shell自带的time命令，进行性能测试。示例如下：
 > `time go run main.go`
+> 2. 通过go自带的调试工具pprof
+> CPU profile：报告程序的 CPU 使用情况，按照一定频率去采集应用程序在 CPU 和寄存器上面的数据
+Memory Profile（Heap Profile）：报告程序的内存使用情况
+Block Profiling：报告 goroutines 不在运行状态的情况，可以用来分析和查找死锁等性能瓶颈
+Goroutine Profiling：报告 goroutines 的使用情况，有哪些 goroutine，它们的调用关系是怎样的
+> 首先是最基本的runtime/pprof这是官方提供的最基本的包。然后是`net/http/pprof`这个包是封装在`runtime/pprof`这个包基础上的
+
+首先调用runtime/pprof这个包，将结果输出到一份文件中，通过执行go tool pprof <文件名>就可以进行查看，查看性能的消耗。
+
+# 调试工具
+## dlv
+>dlv是一种专门来调试go代码的工具。首先使用方法，通过ps -ef 找到go运行的二进制文件，然后 dlv attach pid 来进行调试
+查看帮助 help，bp，查看断点
 
 
+# make 和 new
+> 在声明一个普通变量的时候，不需要new或者make，只需要通过var声明就可以，但是对于指针类型的变量，在声明的时候要通过new来申请内存空间，但是对于普通的变量，`int`,`string`等变量就不需要new了，但是对于make来说，主要使用的地方有三出，chanel，slice，以及map，使用这三种类型的时候一定要提前通过make申请空间。
+
+# 变量逃逸
+> 在go中，变量申请的内存到底是放在堆上还是栈上，是通过go的runtime来自动调度的。一般来说，在某个函数中的临时变量都是分配到栈上的，但是在go中，当发现变量的作用域没有跑出函数范围，就可以在栈上，反之则必须分配在堆
+> 所以说，Golang中一个函数内局部变量，不管是不是动态new出来的，它会被分配在堆还是栈，是由编译器做逃逸分析之后做出的决定。
